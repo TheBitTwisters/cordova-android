@@ -203,6 +203,9 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
         // Fix for CB-1405
         // Google issue 4641
         String defaultUserAgent = settings.getUserAgentString();
+           
+        // FIXED FOR MIXEDCONTENT
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
         // Fix for CB-3360
         String overrideUserAgent = preferences.getString("OverrideUserAgent", null);

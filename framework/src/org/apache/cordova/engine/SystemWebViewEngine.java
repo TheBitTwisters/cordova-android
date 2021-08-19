@@ -146,6 +146,7 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
     private void initWebViewSettings() {
         webView.setInitialScale(0);
         webView.setVerticalScrollBarEnabled(false);
+        webView.clearCache(true);
         // Enable JavaScript
         final WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -154,7 +155,7 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
 
         /**
          * https://developer.android.com/reference/android/webkit/WebSettings#setAllowFileAccess(boolean)
-         * 
+         *
          * SDK >= 30 has recently set this value to false by default.
          * It is recommended to turn off this settings To prevent possible security issues targeting Build.VERSION_CODES.Q and earlier.
          * For existing functionality, this setting is set to true. In a future release, this should be defaulted to false.
@@ -203,7 +204,7 @@ public class SystemWebViewEngine implements CordovaWebViewEngine {
         // Fix for CB-1405
         // Google issue 4641
         String defaultUserAgent = settings.getUserAgentString();
-           
+
         // FIXED FOR MIXEDCONTENT
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 

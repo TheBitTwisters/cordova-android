@@ -29,6 +29,7 @@ import android.os.Build;
 import android.webkit.ClientCertRequest;
 import android.webkit.HttpAuthHandler;
 import android.webkit.SslErrorHandler;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -58,6 +59,8 @@ public class SystemWebViewClient extends WebViewClient {
     protected final SystemWebViewEngine parentEngine;
     private boolean doClearHistory = false;
     boolean isCurrentlyLoading;
+
+    private String indexPageUrl = "";
 
     /** The authorization tokens. */
     private Hashtable<String, AuthenticationToken> authenticationTokens = new Hashtable<String, AuthenticationToken>();
@@ -143,6 +146,8 @@ public class SystemWebViewClient extends WebViewClient {
         // Flush stale messages & reset plugins.
         parentEngine.bridge.reset();
         parentEngine.client.onPageStarted(url);
+
+        indexPageUrl = url;
     }
 
     /**
@@ -317,19 +322,22 @@ public class SystemWebViewClient extends WebViewClient {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+    @TargetApi(21)
+    public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+        if (request.getMethod().equalsIgnoreCase("OPTIONS") || request.getMethod().equalsIgnoreCase("POST")) {
+            return OverrideOptionsRequest.build(indexPageUrl.replaceAll("/$", ""));
+        }
         try {
             // Check the against the whitelist and lock out access to the WebView directory
             // Changing this will cause problems for your application
-            if (!parentEngine.pluginManager.shouldAllowRequest(url)) {
-                LOG.w(TAG, "URL blocked by whitelist: " + url);
+            if (!parentEngine.pluginManager.shouldAllowRequest(request.getUrl().toString())) {
+                LOG.w(TAG, "URL blocked by whitelist: " + request.getUrl().toString());
                 // Results in a 404.
                 return new WebResourceResponse("text/plain", "UTF-8", null);
             }
 
             CordovaResourceApi resourceApi = parentEngine.resourceApi;
-            Uri origUri = Uri.parse(url);
+            Uri origUri = request.getUrl();
             // Allow plugins to intercept WebView requests.
             Uri remappedUri = resourceApi.remapUri(origUri);
 
